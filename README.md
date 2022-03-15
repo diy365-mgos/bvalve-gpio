@@ -72,7 +72,7 @@ The value of the `gpio_power` parameter affects the use of pins according to the
 |gpio_power / pin|pin1|pin2|
 |--|--|--|
 |MGOS_BVALVE_GPIO_POWER_NONE|OPEN the valve.|CLOSE the valve.|
-|MGOS_BVALVE_GPIO_POWER_PIN1|POWER the valve.|**OPEN/CLOSE** the valve.|
-|MGOS_BVALVE_GPIO_POWER_PIN2|**OPEN/CLOSE** the valve.|POWER the valve.|
+|MGOS_BVALVE_GPIO_POWER_PIN1|POWER the valve.|OPEN/CLOSE the valve.|
+|MGOS_BVALVE_GPIO_POWER_PIN2|OPEN/CLOSE the valve.|POWER the valve.|
 ## To Do
 - Implement javascript APIs for [Mongoose OS MJS](https://github.com/mongoose-os-libs/mjs).
