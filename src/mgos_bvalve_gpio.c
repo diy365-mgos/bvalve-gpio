@@ -25,7 +25,7 @@ struct mg_bvalve_gpio_cfg {
 //   return false;
 // }
 
-bool mg_bvalve_gpio_set_closed_solenoid(struct mg_bvalve_gpio_cfg *cfg, enum mgos_bvalve_state state) {
+bool mg_bvalve_gpio_close_solenoid(struct mg_bvalve_gpio_cfg *cfg) {
   enum mgos_bvalve_type valve_type = mgos_bvalve_get_type(cfg->valve);
   // I must CLOSE the solenoid valve...
   if ((valve_type & MGOS_BVALVE_TYPE_NO) == MGOS_BVALVE_TYPE_NO) {
@@ -40,7 +40,7 @@ bool mg_bvalve_gpio_set_closed_solenoid(struct mg_bvalve_gpio_cfg *cfg, enum mgo
   return false;
 }
 
-bool mg_bvalve_gpio_set_open_solenoid(struct mg_bvalve_gpio_cfg *cfg, enum mgos_bvalve_state state) {
+bool mg_bvalve_gpio_open_solenoid(struct mg_bvalve_gpio_cfg *cfg) {
   enum mgos_bvalve_type valve_type = mgos_bvalve_get_type(cfg->valve);
   // I must OPEN the solenoid valve...
   if ((valve_type & MGOS_BVALVE_TYPE_NC) == MGOS_BVALVE_TYPE_NC) {
@@ -57,34 +57,65 @@ bool mg_bvalve_gpio_set_open_solenoid(struct mg_bvalve_gpio_cfg *cfg, enum mgos_
 
 bool mg_bvalve_gpio_set_state_solenoid(struct mg_bvalve_gpio_cfg *cfg, enum mgos_bvalve_state state) {
   if (state == MGOS_BVALVE_STATE_CLOSED) {
-    return mg_bvalve_gpio_set_closed_solenoid(cfg, state);
+    return mg_bvalve_gpio_close_solenoid(cfg);
   } else if (state == MGOS_BVALVE_STATE_CLOSED) {
-    return mg_bvalve_gpio_set_open_solenoid(cfg, state);
+    return mg_bvalve_gpio_open_solenoid(cfg);
   }
   return false;
 }
 
-bool mg_bvalve_gpio_set_closed_bistable(struct mg_bvalve_gpio_cfg *cfg, enum mgos_bvalve_state state) {
-  enum mgos_bvalve_type valve_type = mgos_bvalve_get_type(cfg->valve);
+bool mg_bvalve_gpio_close_bistable(struct mg_bvalve_gpio_cfg *cfg) {
   // I must CLOSE the bistable valve...
+  return false;
 }
 
-bool mg_bvalve_gpio_set_open_bistable(struct mg_bvalve_gpio_cfg *cfg, enum mgos_bvalve_state state) {
-  enum mgos_bvalve_type valve_type = mgos_bvalve_get_type(cfg->valve);
+bool mg_bvalve_gpio_open_bistable(struct mg_bvalve_gpio_cfg *cfg) {
   // I must OPEN the bistable valve...
+  return false;
 }
 
 bool mg_bvalve_gpio_set_state_bistable(struct mg_bvalve_gpio_cfg *cfg, enum mgos_bvalve_state state) {
  if (state == MGOS_BVALVE_STATE_CLOSED) {
-    return mg_bvalve_gpio_set_closed_bistable(cfg, state);
+    return mg_bvalve_gpio_close_bistable(cfg);
   } else if (state == MGOS_BVALVE_STATE_CLOSED) {
-    return mg_bvalve_gpio_set_open_bistable(cfg, state);
+    return mg_bvalve_gpio_open_bistable(cfg);
+  }
+  return false;
+}
+
+bool mg_bvalve_gpio_close_motorized(struct mg_bvalve_gpio_cfg *cfg) {
+  enum mgos_bvalve_type valve_type = mgos_bvalve_get_type(cfg->valve);
+  // I must CLOSE the motorized valve...
+  if ((valve_type & MGOS_BVALVE_TYPE_NO) == MGOS_BVALVE_TYPE_NO) {
+    // The valve is NO, so...
+
+  } else if ((valve_type & MGOS_BVALVE_TYPE_NC) == MGOS_BVALVE_TYPE_NC) {
+    // The valve is NC, so...
+
+  }
+  return false;
+}
+
+bool mg_bvalve_gpio_open_motorized(struct mg_bvalve_gpio_cfg *cfg) {
+  enum mgos_bvalve_type valve_type = mgos_bvalve_get_type(cfg->valve);
+  // I must OPEN the motorized valve...
+  if ((valve_type & MGOS_BVALVE_TYPE_NC) == MGOS_BVALVE_TYPE_NC) {
+    // The valve is NC, so...
+
+  } else if ((valve_type & MGOS_BVALVE_TYPE_NO) == MGOS_BVALVE_TYPE_NO) {
+    // The valve is NO, so...
+
   }
   return false;
 }
 
 bool mg_bvalve_gpio_set_state_motorized(struct mg_bvalve_gpio_cfg *cfg, enum mgos_bvalve_state state) {
-
+ if (state == MGOS_BVALVE_STATE_CLOSED) {
+    return mg_bvalve_gpio_close_motorized(cfg);
+  } else if (state == MGOS_BVALVE_STATE_CLOSED) {
+    return mg_bvalve_gpio_open_motorized(cfg);
+  }
+  return false;
 }
 
 bool mg_bvalve_gpio_set_state(struct mg_bvalve_gpio_cfg *cfg, enum mgos_bvalve_state state) {
