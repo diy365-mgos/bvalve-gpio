@@ -64,13 +64,42 @@ bool mg_bvalve_gpio_set_state_solenoid(struct mg_bvalve_gpio_cfg *cfg, enum mgos
   return false;
 }
 
+bool mg_bvalve_gpio_reset_pin1pin2(struct mg_bvalve_gpio_cfg *cfg) {
+  // set the pin1 (vcc_pin) 
+  mgos_gpio_write(cfg->pin1, (cfg->pin1_active_high ? false : true));
+  // reset the pin2 (gnd_pin)
+  mgos_gpio_write(cfg->pin2, (cfg->pin2_active_high ? false : true));
+
+  return ((mgos_gpio_read(cfg->pin1) == (cfg->pin1_active_high ? false : true)) &&
+          (mgos_gpio_read(cfg->pin2) == (cfg->pin2_active_high ? false : true)));
+}
+
+bool mg_bvalve_gpio_set_pin1pin2(struct mg_bvalve_gpio_cfg *cfg, bool reverse) {
+  if (!mg_bvalve_gpio_reset_pin1pin2(cfg)) return false;
+  // set the pin1 (vcc_pin) 
+  mgos_gpio_write(cfg->pin1, (cfg->pin1_active_high ? !reverse : reverse));
+  // set the pin2 (gnd_pin)
+  mgos_gpio_write(cfg->pin2, (cfg->pin2_active_high ? reverse : !reverse));
+
+  return ((mgos_gpio_read(cfg->pin1) == (cfg->pin1_active_high ? !reverse : reverse)) &&
+          (mgos_gpio_read(cfg->pin2) == (cfg->pin2_active_high ? reverse : !reverse)));
+}
+
 bool mg_bvalve_gpio_close_bistable(struct mg_bvalve_gpio_cfg *cfg) {
   // I must CLOSE the bistable valve...
+   if (mg_bvalve_gpio_set_pin1pin2(cfg, true)) {
+    // wait pulse_duration (ms)
+    return mg_bvalve_gpio_reset_pin1pin2(cfg);
+  }
   return false;
 }
 
 bool mg_bvalve_gpio_open_bistable(struct mg_bvalve_gpio_cfg *cfg) {
   // I must OPEN the bistable valve...
+  if (mg_bvalve_gpio_set_pin1pin2(cfg, false)) {
+    // wait pulse_duration (ms)
+    return mg_bvalve_gpio_reset_pin1pin2(cfg);
+  }
   return false;
 }
 
@@ -176,7 +205,7 @@ bool mg_bvalve_gpio_attach_motorized(mgos_bvalve_t valve, struct mg_bvalve_gpio_
   }
 
   cfg->gpio_power = va_arg(args, enum mgos_bvalve_gpio_power);
-  
+
   return true;
 }
 

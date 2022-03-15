@@ -31,7 +31,8 @@ bool mgos_bvalve_gpio_attach(mgos_bvalve_t valve, int pin, bool active_high);
 |--|--|
 |valve|A bValve of type `MGOS_BVALVE_TYPE_SOLENOID`.|
 |pin|The GPIO pin.|
-|active_high|`true` if the `pin` GPIO is on when output is high (1).|
+|active_high|`true` if the `pin` GPIO is `on` when output is high (1).|
+
 **MGOS_BVALVE_TYPE_BISTABLE**
 ```c
 bool mgos_bvalve_gpio_attach(mgos_bvalve_t valve,
@@ -42,11 +43,12 @@ bool mgos_bvalve_gpio_attach(mgos_bvalve_t valve,
 |Parameter||
 |--|--|
 |valve|A bValve of type `MGOS_BVALVE_TYPE_BISTABLE`.|
-|vcc_pin|The valve's `VCC` GPIO pin.|
-|vcc_active_high|`true` if the `vcc_pin` GPIO is on when output is high (1).|
-|gnd_pin|The valve's `GND` GPIO pin.|
-|gnd_active_high|`true` if the `gnd_pin` GPIO is on when output is high (1).|
-|pulse_duration|The pulse duration in milliseconds for opening/closing the valve.|
+|pin1|The GPIO pin to use to **OPEN** the valve.|
+|pin1_active_high|`true` if the `pin1` GPIO is `on` when output is high (1).|
+|pin2|The GPIO pin to use to **CLOSE** the valve.|
+|pin2_active_high|`true` if the `pin2` GPIO is `on` when output is high (1).|
+|pulse_duration|Milliseconds. The pulse duration for opening/closing the valve.|
+
 **MGOS_BVALVE_TYPE_MOTORIZED**
 ```c
 bool mgos_bvalve_gpio_attach(mgos_bvalve_t valve,
@@ -58,19 +60,19 @@ bool mgos_bvalve_gpio_attach(mgos_bvalve_t valve,
 |Parameter||
 |--|--|
 |valve|A bValve of type `MGOS_BVALVE_TYPE_MOTORIZED`.|
-|pin1|The `pin1` GPIO pin.|
-|pin1_active_high|`true` if the `pin1` GPIO is on when output is high (1).|
-|pin2|The `pin2` GPIO pin.|
-|pin2_active_high|`true` if the `pin2` GPIO is on when output is high (1).|
-|pulse_duration|The pulse duration in seconds for opening/closing the valve.|
+|pin1|The GPIO pin to use to **OPEN**/**CLOSE**/**POWER** the valve.|
+|pin1_active_high|`true` if the `pin1` GPIO is `on` when output is high (1).|
+|pin2|The GPIO pin to use to **OPEN**/**CLOSE**/**POWER** the valve.|
+|pin2_active_high|`true` if the `pin2` GPIO is `on` when output is high (1).|
+|pulse_duration|Seconds. The pulse duration for opening/closing the valve.|
 |gpio_power|The [power setting](#mgos_bvalve_gpio_power) to use for powering the valve.|
 
 The value of the `gpio_power` parameter affects the use of pins according to the following schema:
 
 |gpio_power / pin|pin1|pin2|
 |--|--|--|
-|MGOS_BVALVE_GPIO_POWER_NONE|**Open** the valve.|**Close** the valve.|
-|MGOS_BVALVE_GPIO_POWER_PIN1|**Power** the valve.|**Open/Close** the valve.|
-|MGOS_BVALVE_GPIO_POWER_PIN2|**Open/Close** the valve.|**Power** the valve.|
+|MGOS_BVALVE_GPIO_POWER_NONE|**OPEN** the valve.|**CLOSE** the valve.|
+|MGOS_BVALVE_GPIO_POWER_PIN1|**POWER** the valve.|**OPEN/CLOSE** the valve.|
+|MGOS_BVALVE_GPIO_POWER_PIN2|**OPEN/CLOSE** the valve.|**POWER** the valve.|
 ## To Do
 - Implement javascript APIs for [Mongoose OS MJS](https://github.com/mongoose-os-libs/mjs).
