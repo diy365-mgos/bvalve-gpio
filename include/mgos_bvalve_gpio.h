@@ -21,7 +21,6 @@
 #include <stdbool.h>
 #include <stdarg.h>
 #include "mgos_bvalve.h"
-#include "mgos_bvar_dic.h"
 
 #ifdef __cplusplus
 extern "C" {
