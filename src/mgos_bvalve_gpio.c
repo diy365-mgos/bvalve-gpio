@@ -144,25 +144,25 @@ bool mg_bvalve_gpio_set_state_cb(mgos_bthing_t thing, mgos_bvarc_t state, void *
 
 bool mg_bvalve_gpio_attach_solenoid(mgos_bvalve_t valve, struct mg_bvalve_gpio_cfg *cfg, va_list args) {
   cfg->pin1 = va_arg(args, int);
-  cfg->pin1_active_high = va_arg(args, bool);
+  cfg->pin1_active_high = va_arg(args, int);
   return true;
 }
 
 bool mg_bvalve_gpio_attach_bistable(mgos_bvalve_t valve, struct mg_bvalve_gpio_cfg *cfg, va_list args) {
   cfg->pin1 = va_arg(args, int);
-  cfg->pin1_active_high = va_arg(args, bool);
+  cfg->pin1_active_high = va_arg(args, int);
   cfg->pin2 = va_arg(args, int);
-  cfg->pin2_active_high = va_arg(args, bool);
-  cfg->pulse_duration =  = va_arg(args, int);
+  cfg->pin2_active_high = va_arg(args, int);
+  cfg->pulse_duration = va_arg(args, int);
   return true;
 }
 
 bool mg_bvalve_gpio_attach_motorized(mgos_bvalve_t valve, struct mg_bvalve_gpio_cfg *cfg, va_list args) {
   cfg->pin1 = va_arg(args, int);
-  cfg->pin1_active_high = va_arg(args, bool);
+  cfg->pin1_active_high = va_arg(args, int);
   cfg->pin2 = va_arg(args, int);
-  cfg->pin2_active_high = va_arg(args, bool);
-  cfg->pulse_duration =  = va_arg(args, int);
+  cfg->pin2_active_high = va_arg(args, int);
+  cfg->pulse_duration = va_arg(args, int);
   cfg->gpio_power = va_arg(args, enum mgos_bvalve_gpio_power);
   return true;
 }
