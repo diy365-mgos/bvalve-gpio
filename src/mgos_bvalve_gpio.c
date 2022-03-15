@@ -153,7 +153,13 @@ bool mg_bvalve_gpio_attach_bistable(mgos_bvalve_t valve, struct mg_bvalve_gpio_c
   cfg->pin1_active_high = va_arg(args, int);
   cfg->pin2 = va_arg(args, int);
   cfg->pin2_active_high = va_arg(args, int);
+
   cfg->pulse_duration = va_arg(args, int);
+  if (cfg->pulse_duration <= 0) {
+    LOG(LL_ERROR, ("Invalid 'pulse_duration' value."));
+    return false;
+  }
+
   return true;
 }
 
@@ -162,8 +168,15 @@ bool mg_bvalve_gpio_attach_motorized(mgos_bvalve_t valve, struct mg_bvalve_gpio_
   cfg->pin1_active_high = va_arg(args, int);
   cfg->pin2 = va_arg(args, int);
   cfg->pin2_active_high = va_arg(args, int);
+
   cfg->pulse_duration = va_arg(args, int);
+  if (cfg->pulse_duration <= 0) {
+    LOG(LL_ERROR, ("Invalid 'pulse_duration' value."));
+    return false;
+  }
+
   cfg->gpio_power = va_arg(args, enum mgos_bvalve_gpio_power);
+  
   return true;
 }
 
@@ -179,20 +192,28 @@ bool mg_bvalve_gpio_attach(mgos_bvalve_t valve, struct mg_bvalve_gpio_cfg *cfg, 
     success = mg_bvalve_gpio_attach_motorized(valve, cfg, args);
   }
 
+  if (cfg->pin1 == -1 && cfg->pin2 == -1) {
+    success = false;
+    LOG(LL_ERROR, ("No valid pins have been specified"));
+  }
+
   if (success && (cfg->pin1 != -1)) {
     if (!mgos_gpio_setup_output(cfg->pin1, (cfg->pin1_active_high ? false : true))) {
       success = false;
-      LOG(LL_ERROR, ("Error initializing the GPIO pin %d as output for bValve '%s'",
-        cfg->pin1, mgos_bthing_get_uid(MGOS_BVALVE_THINGCAST(valve))));
+      LOG(LL_ERROR, ("Error initializing the GPIO pin %d as output", cfg->pin1));
     }
   }
 
   if (success && (cfg->pin2 != -1)) {
     if (!mgos_gpio_setup_output(cfg->pin2, (cfg->pin2_active_high ? false : true))) {
       success = false;
-      LOG(LL_ERROR, ("Error initializing the GPIO pin %d as output for bValve '%s'",
-        cfg->pin2, mgos_bthing_get_uid(MGOS_BVALVE_THINGCAST(valve))));
+      LOG(LL_ERROR, ("Error initializing the GPIO pin %d as output", cfg->pin2));
     }
+  }
+
+  if (!success) {
+    LOG(LL_ERROR, ("Error attacing GPIOs to bValve '%s'. See above message/s for more details.",
+       mgos_bthing_get_uid(MGOS_BVALVE_THINGCAST(valve))));
   }
 
   return success;
