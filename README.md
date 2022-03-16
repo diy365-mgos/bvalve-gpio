@@ -5,18 +5,18 @@ Mongoose-OS library that allows you to easily attach a [bValve](https://github.c
 ### mgos_bvalve_gpio_power
 ```c
 enum mgos_bvalve_gpio_power {
-  MGOS_BVALVE_GPIO_POWER_NONE = 0,
-  MGOS_BVALVE_GPIO_POWER_PIN1 = 1,
-  MGOS_BVALVE_GPIO_POWER_PIN2 = 2,
+  MGOS_BVALVE_GPIO_power_NONE = 0,
+  MGOS_BVALVE_GPIO_power_PIN1 = 1,
+  MGOS_BVALVE_GPIO_power_PIN2 = 2,
 };
 ```
 Power settings for bValves of [type](https://github.com/diy365-mgos/bvalve#mgos_bvalve_type) `MGOS_BVALVE_TYPE_BISTABLE`. Used by `mgos_bvalve_gpio_attach()`.
 
 |Value||
 |--|--|
-|MGOS_BVALVE_GPIO_POWER_NONE|The valve's power supply is not managed using GPIOs.|
-|MGOS_BVALVE_GPIO_POWER_PIN1|The valve's power supply is controlled by the `pin1` GPIO.|
-|MGOS_BVALVE_GPIO_POWER_PIN2|The valve's power supply is controlled by the `pin2` GPIO.|
+|MGOS_BVALVE_GPIO_power_NONE|The valve's power supply is not managed using GPIOs.|
+|MGOS_BVALVE_GPIO_power_PIN1|The valve's power supply is controlled by the `pin1` GPIO.|
+|MGOS_BVALVE_GPIO_power_PIN2|The valve's power supply is controlled by the `pin2` GPIO.|
 ### mgos_bvalve_gpio_attach
 ```c
 bool mgos_bvalve_gpio_attach(mgos_bvalve_t valve, ...);
@@ -43,9 +43,9 @@ bool mgos_bvalve_gpio_attach(mgos_bvalve_t valve,
 |Parameter||
 |--|--|
 |valve|A bValve of type `MGOS_BVALVE_TYPE_BISTABLE`.|
-|pin1|The GPIO pin to use to OPEN the valve.|
+|pin1|The GPIO pin to use to open the valve.|
 |pin1_active_high|`true` if the `pin1` GPIO is `on` when output is high (1).|
-|pin2|The GPIO pin to use to CLOSE the valve.|
+|pin2|The GPIO pin to use to close the valve.|
 |pin2_active_high|`true` if the `pin2` GPIO is `on` when output is high (1).|
 |pulse_duration|Milliseconds. The pulse duration for opening/closing the valve.|
 
@@ -60,9 +60,9 @@ bool mgos_bvalve_gpio_attach(mgos_bvalve_t valve,
 |Parameter||
 |--|--|
 |valve|A bValve of type `MGOS_BVALVE_TYPE_MOTORIZED`.|
-|pin1|The GPIO pin to use to OPEN/CLOSE/POWER the valve.|
+|pin1|The GPIO pin to use to open/close/power the valve.|
 |pin1_active_high|`true` if the `pin1` GPIO is `on` when output is high (1).|
-|pin2|The GPIO pin to use to OPEN/CLOSE/POWER the valve.|
+|pin2|The GPIO pin to use to open/close/power the valve.|
 |pin2_active_high|`true` if the `pin2` GPIO is `on` when output is high (1).|
 |pulse_duration|Seconds. The pulse duration for opening/closing the valve.|
 |gpio_power|The [power setting](#mgos_bvalve_gpio_power) to use for powering the valve.|
@@ -71,8 +71,8 @@ The value of the `gpio_power` parameter affects the use of pins according to the
 
 |gpio_power / pin|pin1|pin2|
 |--|--|--|
-|MGOS_BVALVE_GPIO_POWER_NONE|OPEN the valve.|CLOSE the valve.|
-|MGOS_BVALVE_GPIO_POWER_PIN1|POWER the valve.|OPEN/CLOSE the valve.|
-|MGOS_BVALVE_GPIO_POWER_PIN2|OPEN/CLOSE the valve.|POWER the valve.|
+|MGOS_BVALVE_GPIO_power_NONE|**Open** the valve.|**Close** the valve.|
+|MGOS_BVALVE_GPIO_power_PIN1|**Power** the valve.|**Open**/**Close** the valve.|
+|MGOS_BVALVE_GPIO_power_PIN2|**Open**/**Close** the valve.|**Power** the valve.|
 ## To Do
 - Implement javascript APIs for [Mongoose OS MJS](https://github.com/mongoose-os-libs/mjs).

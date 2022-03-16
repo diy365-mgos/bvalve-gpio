@@ -14,6 +14,7 @@ struct mg_bvalve_gpio_cfg {
   bool pin2_active_high;
   enum mgos_bvalve_gpio_power gpio_power;
   int pulse_duration;
+  int pulse_timer_id;
 };
 
 // bool mg_bvalve_gpio_get_state_cb(mgos_bthing_t thing, mgos_bvar_t state, void *userdata) {
@@ -31,13 +32,16 @@ bool mg_bvalve_gpio_close_solenoid(struct mg_bvalve_gpio_cfg *cfg) {
   if ((valve_type & MGOS_BVALVE_TYPE_NO) == MGOS_BVALVE_TYPE_NO) {
     // The valve is NO, so pin1 must be activated to close it
     mgos_gpio_write(cfg->pin1, (cfg->pin1_active_high ? true : false));
-    return (mgos_gpio_read(cfg->pin1) == (cfg->pin1_active_high ? true : false));
+    if (mgos_gpio_read(cfg->pin1) != (cfg->pin1_active_high ? true : false)) return false;
   } else if ((valve_type & MGOS_BVALVE_TYPE_NC) == MGOS_BVALVE_TYPE_NC) {
     // The valve is NC, so pin1 must be deactivated to close it
     mgos_gpio_write(cfg->pin1, (cfg->pin1_active_high ? false : true));
-    return (mgos_gpio_read(cfg->pin1) == (cfg->pin1_active_high ? false : true));
+    if (mgos_gpio_read(cfg->pin1) != (cfg->pin1_active_high ? false : true)) return false;
+  } else {
+    return false;
   }
-  return false;
+  mgos_bvar_set_integer(mg_bthing_get_state_4update(MGOS_BVALVE_THINGCAST(cfg->valve)), MGOS_BVALVE_STATE_CLOSED);
+  return true;
 }
 
 bool mg_bvalve_gpio_open_solenoid(struct mg_bvalve_gpio_cfg *cfg) {
@@ -46,13 +50,16 @@ bool mg_bvalve_gpio_open_solenoid(struct mg_bvalve_gpio_cfg *cfg) {
   if ((valve_type & MGOS_BVALVE_TYPE_NC) == MGOS_BVALVE_TYPE_NC) {
     // The valve is NC, so pin1 must be activated to open it
     mgos_gpio_write(cfg->pin1, (cfg->pin1_active_high ? true : false));
-    return (mgos_gpio_read(cfg->pin1) == (cfg->pin1_active_high ? true : false));
+    if (mgos_gpio_read(cfg->pin1) != (cfg->pin1_active_high ? true : false)) return false;
   } else if ((valve_type & MGOS_BVALVE_TYPE_NO) == MGOS_BVALVE_TYPE_NO) {
     // The valve is NO, so pin1 must be deactivated to open it
     mgos_gpio_write(cfg->pin1, (cfg->pin1_active_high ? false : true));
-    return (mgos_gpio_read(cfg->pin1) == (cfg->pin1_active_high ? false : true));
+    if (mgos_gpio_read(cfg->pin1) != (cfg->pin1_active_high ? false : true)) return false;
+  } else {
+    return false;
   }
-  return false;
+  mgos_bvar_set_integer(mg_bthing_get_state_4update(MGOS_BVALVE_THINGCAST(cfg->valve)), MGOS_BVALVE_STATE_OPEN);
+  return true;
 }
 
 bool mg_bvalve_gpio_set_state_solenoid(struct mg_bvalve_gpio_cfg *cfg, enum mgos_bvalve_state state) {
@@ -88,6 +95,7 @@ bool mg_bvalve_gpio_set_pin1pin2(struct mg_bvalve_gpio_cfg *cfg, bool reverse) {
 bool mg_bvalve_gpio_close_bistable(struct mg_bvalve_gpio_cfg *cfg) {
   // I must CLOSE the bistable valve...
    if (mg_bvalve_gpio_set_pin1pin2(cfg, true)) {
+     mgos_bvar_set_integer(mg_bthing_get_state_4update(MGOS_BVALVE_THINGCAST(cfg->valve)), MGOS_BVALVE_STATE_CLOSING);
     // wait pulse_duration (ms)
     return mg_bvalve_gpio_reset_pin1pin2(cfg);
   }
@@ -97,6 +105,7 @@ bool mg_bvalve_gpio_close_bistable(struct mg_bvalve_gpio_cfg *cfg) {
 bool mg_bvalve_gpio_open_bistable(struct mg_bvalve_gpio_cfg *cfg) {
   // I must OPEN the bistable valve...
   if (mg_bvalve_gpio_set_pin1pin2(cfg, false)) {
+    mgos_bvar_set_integer(mg_bthing_get_state_4update(MGOS_BVALVE_THINGCAST(cfg->valve)), MGOS_BVALVE_STATE_OPENING);
     // wait pulse_duration (ms)
     return mg_bvalve_gpio_reset_pin1pin2(cfg);
   }
@@ -256,6 +265,8 @@ bool mgos_bvalve_gpio_attach(mgos_bvalve_t valve, ...) {
   cfg->valve = valve;
   cfg->pin1 = -1;
   cfg->pin2 = -1;
+  cfg->pulse_timer_id = MGOS_INVALID_TIMER_ID;
+
   bool ret = mg_bvalve_gpio_attach(valve, cfg, ap);
   if (ret) {
     ret = !mgos_bthing_on_set_state(MGOS_BVALVE_THINGCAST(valve), mg_bvalve_gpio_set_state_cb, cfg);
