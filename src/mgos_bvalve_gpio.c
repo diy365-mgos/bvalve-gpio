@@ -94,7 +94,7 @@ static void mg_bvalve_gpio_bistable_pulse_cb(void *arg) {
     mgos_bvar_set_integer(state_4upd,
       (state == MGOS_BVALVE_STATE_CLOSING ? MGOS_BVALVE_STATE_CLOSED : MGOS_BVALVE_STATE_OPEN));
 
-    mgos_bthing_update_state();
+    mgos_bthing_update_state(MGOS_BVALVE_THINGCAST(cfg->valve));
   }
 }
 
