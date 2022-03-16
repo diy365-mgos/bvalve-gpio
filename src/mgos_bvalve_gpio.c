@@ -18,15 +18,6 @@ struct mg_bvalve_gpio_cfg {
   int pulse_timer_id;
 };
 
-// bool mg_bvalve_gpio_get_state_cb(mgos_bthing_t thing, mgos_bvar_t state, void *userdata) {
-//   struct mg_bvalve_gpio_cfg *cfg = (struct mg_bvalve_gpio_cfg *)userdata;
-//   if (thing && state && cfg) {
-//     //mgos_bvar_set_integer(state);
-//     return true;
-//   }
-//   return false;
-// }
-
 bool mg_bvalve_gpio_close_solenoid(struct mg_bvalve_gpio_cfg *cfg) {
   enum mgos_bvalve_type valve_type = mgos_bvalve_get_type(cfg->valve);
   // I must CLOSE the solenoid valve...
@@ -93,22 +84,40 @@ bool mg_bvalve_gpio_set_pin1pin2(struct mg_bvalve_gpio_cfg *cfg, bool reverse) {
           (mgos_gpio_read(cfg->pin2) == (cfg->pin2_active_high ? reverse : !reverse)));
 }
 
+static void mg_bvalve_gpio_bistable_pulse_cb(void *arg) {
+  struct mg_bvalve_gpio_cfg *cfg = (struct mg_bvalve_gpio_cfg *)arg;
+
+  if (mg_bvalve_gpio_reset_pin1pin2(cfg)) {
+    mgos_bvar_t state_4upd = mg_bthing_get_state_4update(MGOS_BVALVE_THINGCAST(cfg->valve));
+    enum mgos_bvalve_state state = (enum mgos_bvalve_state)mgos_bvar_get_integer(state_4upd);
+
+    mgos_bvar_set_integer(state_4upd,
+      (state == MGOS_BVALVE_STATE_CLOSING ? MGOS_BVALVE_STATE_CLOSED : MGOS_BVALVE_STATE_OPEN));
+
+    mgos_bthing_update_state();
+  }
+}
+
 bool mg_bvalve_gpio_close_bistable(struct mg_bvalve_gpio_cfg *cfg) {
   // I must CLOSE the bistable valve...
-   if (mg_bvalve_gpio_set_pin1pin2(cfg, true)) {
-     mgos_bvar_set_integer(mg_bthing_get_state_4update(MGOS_BVALVE_THINGCAST(cfg->valve)), MGOS_BVALVE_STATE_CLOSING);
-    // wait pulse_duration (ms)
-    return mg_bvalve_gpio_reset_pin1pin2(cfg);
+  if (cfg->pulse_timer_id != MGOS_INVALID_TIMER_ID) mgos_clear_timer(cfg->pulse_timer_id);
+  if (mg_bvalve_gpio_set_pin1pin2(cfg, true)) {
+    mgos_bvar_set_integer(mg_bthing_get_state_4update(MGOS_BVALVE_THINGCAST(cfg->valve)), MGOS_BVALVE_STATE_CLOSING);
+    // start the timer for waiting for the end of the pulse_duration (ms)
+    cfg->pulse_timer_id = mgos_set_timer(cfg->pulse_duration, 0, mg_bvalve_gpio_bistable_pulse_cb, cfg);
+    return (cfg->pulse_timer_id != MGOS_INVALID_TIMER_ID);
   }
   return false;
 }
 
 bool mg_bvalve_gpio_open_bistable(struct mg_bvalve_gpio_cfg *cfg) {
   // I must OPEN the bistable valve...
+  if (cfg->pulse_timer_id != MGOS_INVALID_TIMER_ID) mgos_clear_timer(cfg->pulse_timer_id);
   if (mg_bvalve_gpio_set_pin1pin2(cfg, false)) {
     mgos_bvar_set_integer(mg_bthing_get_state_4update(MGOS_BVALVE_THINGCAST(cfg->valve)), MGOS_BVALVE_STATE_OPENING);
-    // wait pulse_duration (ms)
-    return mg_bvalve_gpio_reset_pin1pin2(cfg);
+    // start the timer for waiting for the end of the pulse_duration (ms)
+    cfg->pulse_timer_id = mgos_set_timer(cfg->pulse_duration, 0, mg_bvalve_gpio_bistable_pulse_cb, cfg);
+    return (cfg->pulse_timer_id != MGOS_INVALID_TIMER_ID);
   }
   return false;
 }
@@ -193,7 +202,7 @@ bool mg_bvalve_gpio_attach_bistable(mgos_bvalve_t valve, struct mg_bvalve_gpio_c
   cfg->pin2 = va_arg(args, int);
   cfg->pin2_active_high = va_arg(args, int);
 
-  cfg->pulse_duration = va_arg(args, int);
+  cfg->pulse_duration = va_arg(args, int); // ms
   if (cfg->pulse_duration <= 0) {
     LOG(LL_ERROR, ("Invalid 'pulse_duration' value."));
     return false;
@@ -208,7 +217,7 @@ bool mg_bvalve_gpio_attach_motorized(mgos_bvalve_t valve, struct mg_bvalve_gpio_
   cfg->pin2 = va_arg(args, int);
   cfg->pin2_active_high = va_arg(args, int);
 
-  cfg->pulse_duration = va_arg(args, int);
+  cfg->pulse_duration = (va_arg(args, int) * 1000); //convert s to ms
   if (cfg->pulse_duration <= 0) {
     LOG(LL_ERROR, ("Invalid 'pulse_duration' value."));
     return false;
