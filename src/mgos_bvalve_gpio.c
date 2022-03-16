@@ -57,7 +57,7 @@ bool mg_bvalve_gpio_open_solenoid(struct mg_bvalve_gpio_cfg *cfg) {
 bool mg_bvalve_gpio_set_state_solenoid(struct mg_bvalve_gpio_cfg *cfg, enum mgos_bvalve_state state) {
   if (state == MGOS_BVALVE_STATE_CLOSED) {
     return mg_bvalve_gpio_close_solenoid(cfg);
-  } else if (state == MGOS_BVALVE_STATE_CLOSED) {
+  } else if (state == MGOS_BVALVE_STATE_OPEN) {
     return mg_bvalve_gpio_open_solenoid(cfg);
   }
   return false;
@@ -129,7 +129,7 @@ bool mg_bvalve_gpio_open_bistable(struct mg_bvalve_gpio_cfg *cfg) {
 bool mg_bvalve_gpio_set_state_bistable(struct mg_bvalve_gpio_cfg *cfg, enum mgos_bvalve_state state) {
  if (state == MGOS_BVALVE_STATE_CLOSED) {
     return mg_bvalve_gpio_close_bistable(cfg);
-  } else if (state == MGOS_BVALVE_STATE_CLOSED) {
+  } else if (state == MGOS_BVALVE_STATE_OPEN) {
     return mg_bvalve_gpio_open_bistable(cfg);
   }
   return false;
@@ -222,7 +222,7 @@ bool mg_bvalve_gpio_open_motorized(struct mg_bvalve_gpio_cfg *cfg) {
 bool mg_bvalve_gpio_set_state_motorized(struct mg_bvalve_gpio_cfg *cfg, enum mgos_bvalve_state state) {
  if (state == MGOS_BVALVE_STATE_CLOSED) {
     return mg_bvalve_gpio_close_motorized(cfg);
-  } else if (state == MGOS_BVALVE_STATE_CLOSED) {
+  } else if (state == MGOS_BVALVE_STATE_OPEN) {
     return mg_bvalve_gpio_open_motorized(cfg);
   }
   return false;
