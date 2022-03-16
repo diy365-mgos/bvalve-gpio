@@ -84,42 +84,46 @@ bool mg_bvalve_gpio_set_pin1pin2(struct mg_bvalve_gpio_cfg *cfg, bool reverse) {
           (mgos_gpio_read(cfg->pin2) == (cfg->pin2_active_high ? reverse : !reverse)));
 }
 
+static void mg_bvalve_gpio_set_final_state(mgos_bvalve_t valve) {
+  mgos_bvar_t state_4upd = mg_bthing_get_state_4update(MGOS_BVALVE_THINGCAST(valve));
+  enum mgos_bvalve_state state = (enum mgos_bvalve_state)mgos_bvar_get_integer(state_4upd);
+
+  mgos_bvar_set_integer(state_4upd,
+    (state == MGOS_BVALVE_STATE_CLOSING ? MGOS_BVALVE_STATE_CLOSED : MGOS_BVALVE_STATE_OPEN));
+
+  mgos_bthing_update_state(MGOS_BVALVE_THINGCAST(valve));
+}
+
 static void mg_bvalve_gpio_bistable_pulse_cb(void *arg) {
   struct mg_bvalve_gpio_cfg *cfg = (struct mg_bvalve_gpio_cfg *)arg;
-
   if (mg_bvalve_gpio_reset_pin1pin2(cfg)) {
-    mgos_bvar_t state_4upd = mg_bthing_get_state_4update(MGOS_BVALVE_THINGCAST(cfg->valve));
-    enum mgos_bvalve_state state = (enum mgos_bvalve_state)mgos_bvar_get_integer(state_4upd);
-
-    mgos_bvar_set_integer(state_4upd,
-      (state == MGOS_BVALVE_STATE_CLOSING ? MGOS_BVALVE_STATE_CLOSED : MGOS_BVALVE_STATE_OPEN));
-
-    mgos_bthing_update_state(MGOS_BVALVE_THINGCAST(cfg->valve));
+    mg_bvalve_gpio_set_final_state(cfg->valve);
   }
+  // the timer is over, so I reset the ID
+  cfg->pulse_timer_id = MGOS_INVALID_TIMER_ID;
+}
+
+bool mg_bvalve_gpio_openclose_bistable(struct mg_bvalve_gpio_cfg *cfg, bool open_valve) {
+  // I must CLOSE the bistable valve...
+  if (cfg->pulse_timer_id != MGOS_INVALID_TIMER_ID) mgos_clear_timer(cfg->pulse_timer_id);
+  if (mg_bvalve_gpio_set_pin1pin2(cfg, !open_valve)) {
+    mgos_bvar_set_integer(mg_bthing_get_state_4update(MGOS_BVALVE_THINGCAST(cfg->valve)),
+      (open_valve ? MGOS_BVALVE_STATE_OPENING : MGOS_BVALVE_STATE_CLOSING));
+    // start the timer for waiting for the end of the pulse_duration (ms)
+    cfg->pulse_timer_id = mgos_set_timer(cfg->pulse_duration, 0, mg_bvalve_gpio_bistable_pulse_cb, cfg);
+    return (cfg->pulse_timer_id != MGOS_INVALID_TIMER_ID);
+  }
+  return false;
 }
 
 bool mg_bvalve_gpio_close_bistable(struct mg_bvalve_gpio_cfg *cfg) {
   // I must CLOSE the bistable valve...
-  if (cfg->pulse_timer_id != MGOS_INVALID_TIMER_ID) mgos_clear_timer(cfg->pulse_timer_id);
-  if (mg_bvalve_gpio_set_pin1pin2(cfg, true)) {
-    mgos_bvar_set_integer(mg_bthing_get_state_4update(MGOS_BVALVE_THINGCAST(cfg->valve)), MGOS_BVALVE_STATE_CLOSING);
-    // start the timer for waiting for the end of the pulse_duration (ms)
-    cfg->pulse_timer_id = mgos_set_timer(cfg->pulse_duration, 0, mg_bvalve_gpio_bistable_pulse_cb, cfg);
-    return (cfg->pulse_timer_id != MGOS_INVALID_TIMER_ID);
-  }
-  return false;
+  return mg_bvalve_gpio_openclose_bistable(cfg, false);
 }
 
 bool mg_bvalve_gpio_open_bistable(struct mg_bvalve_gpio_cfg *cfg) {
   // I must OPEN the bistable valve...
-  if (cfg->pulse_timer_id != MGOS_INVALID_TIMER_ID) mgos_clear_timer(cfg->pulse_timer_id);
-  if (mg_bvalve_gpio_set_pin1pin2(cfg, false)) {
-    mgos_bvar_set_integer(mg_bthing_get_state_4update(MGOS_BVALVE_THINGCAST(cfg->valve)), MGOS_BVALVE_STATE_OPENING);
-    // start the timer for waiting for the end of the pulse_duration (ms)
-    cfg->pulse_timer_id = mgos_set_timer(cfg->pulse_duration, 0, mg_bvalve_gpio_bistable_pulse_cb, cfg);
-    return (cfg->pulse_timer_id != MGOS_INVALID_TIMER_ID);
-  }
-  return false;
+  return mg_bvalve_gpio_openclose_bistable(cfg, true);
 }
 
 bool mg_bvalve_gpio_set_state_bistable(struct mg_bvalve_gpio_cfg *cfg, enum mgos_bvalve_state state) {
@@ -131,30 +135,88 @@ bool mg_bvalve_gpio_set_state_bistable(struct mg_bvalve_gpio_cfg *cfg, enum mgos
   return false;
 }
 
-bool mg_bvalve_gpio_close_motorized(struct mg_bvalve_gpio_cfg *cfg) {
-  enum mgos_bvalve_type valve_type = mgos_bvalve_get_type(cfg->valve);
-  // I must CLOSE the motorized valve...
-  if ((valve_type & MGOS_BVALVE_TYPE_NO) == MGOS_BVALVE_TYPE_NO) {
-    // The valve is NO, so...
+void mg_bvalve_gpio_get_motorized_pins(struct mg_bvalve_gpio_cfg *cfg,
+                                       int *pow_pin, bool *pow_active_high,
+                                       int *cmd_pin, bool *cmd_active_high) {
+  *pow_pin = (cfg->gpio_power == MGOS_BVALVE_GPIO_POWER_PIN1 ? cfg->pin1 : cfg->pin2);
+  *pow_active_high = (cfg->gpio_power == MGOS_BVALVE_GPIO_POWER_PIN1 ? cfg->pin1_active_high : cfg->pin2_active_high);
 
-  } else if ((valve_type & MGOS_BVALVE_TYPE_NC) == MGOS_BVALVE_TYPE_NC) {
-    // The valve is NC, so...
+  *cmd_pin = (cfg->gpio_power == MGOS_BVALVE_GPIO_POWER_PIN1 ? cfg->pin2 : cfg->pin1);
+  *cmd_active_high = (cfg->gpio_power == MGOS_BVALVE_GPIO_POWER_PIN1 ? cfg->pin2_active_high : cfg->pin1_active_high);
+}
 
+bool mg_bvalve_gpio_start_motorized(struct mg_bvalve_gpio_cfg *cfg, bool open_valve) {
+  int pow_pin, cmd_pin;
+  bool pow_active_high, cmd_active_high;
+  mg_bvalve_gpio_get_motorized_pins(cfg, &pow_pin, &pow_active_high, &cmd_pin, &cmd_active_high);
+
+  // set the CMD pin ON or OFF
+  mgos_gpio_write(cmd_pin, (cmd_active_high ? open_valve : !open_valve));
+  if (mgos_gpio_read(cmd_pin) == (cmd_active_high ? open_valve : !open_valve)) {
+    // set the POWER pin ON
+    mgos_gpio_write(pow_pin, (pow_active_high ? true : false));
+    if (mgos_gpio_read(pow_pin) == (pow_active_high ? true : false)) {
+      return true;
+    } else {
+      // semething went wrong, so I set CMD pin OFF
+      mgos_gpio_write(cmd_pin, (cmd_active_high ? false : true));
+    }
   }
   return false;
 }
 
-bool mg_bvalve_gpio_open_motorized(struct mg_bvalve_gpio_cfg *cfg) {
-  enum mgos_bvalve_type valve_type = mgos_bvalve_get_type(cfg->valve);
-  // I must OPEN the motorized valve...
-  if ((valve_type & MGOS_BVALVE_TYPE_NC) == MGOS_BVALVE_TYPE_NC) {
-    // The valve is NC, so...
+bool mg_bvalve_gpio_stop_motorized(struct mg_bvalve_gpio_cfg *cfg) {
+  int pow_pin, cmd_pin;
+  bool pow_active_high, cmd_active_high;
+  mg_bvalve_gpio_get_motorized_pins(cfg, &pow_pin, &pow_active_high, &cmd_pin, &cmd_active_high);
 
-  } else if ((valve_type & MGOS_BVALVE_TYPE_NO) == MGOS_BVALVE_TYPE_NO) {
-    // The valve is NO, so...
-
+  // set the POWER pin OFF
+  mgos_gpio_write(pow_pin, (pow_active_high ? false : true));
+  if (mgos_gpio_read(pow_pin) == (pow_active_high ? false : true)) {
+    // set the CMD pin OFF
+    mgos_gpio_write(cmd_pin, (cmd_active_high ? false : true));
+    if (mgos_gpio_read(cmd_pin) == (cmd_active_high ? false : !true)) {
+      return true;
+    }
   }
   return false;
+}
+
+static void mg_bvalve_gpio_motorized_pulse_cb(void *arg) {
+  struct mg_bvalve_gpio_cfg *cfg = (struct mg_bvalve_gpio_cfg *)arg;
+  if (mg_bvalve_gpio_stop_motorized(cfg)) {
+    mg_bvalve_gpio_set_final_state(cfg->valve);
+  }
+  // the timer is over, so I reset the ID
+  cfg->pulse_timer_id = MGOS_INVALID_TIMER_ID;
+}
+
+bool mg_bvalve_gpio_openclose_motorized(struct mg_bvalve_gpio_cfg *cfg, bool open_valve) {
+  if (cfg->gpio_power == MGOS_BVALVE_GPIO_POWER_NONE) {
+    // the moorized valve works like a bistable one, but with
+    // a longer pulse_duration (usually 5/6 seconds).
+    return (open_valve ? mg_bvalve_gpio_open_bistable(cfg) : mg_bvalve_gpio_close_bistable(cfg));
+  }
+
+  // cancel the pending timer (if running)
+  if (cfg->pulse_timer_id != MGOS_INVALID_TIMER_ID) mgos_clear_timer(cfg->pulse_timer_id);
+
+  if (mg_bvalve_gpio_start_motorized(cfg, open_valve)) {
+    mgos_bvar_set_integer(mg_bthing_get_state_4update(MGOS_BVALVE_THINGCAST(cfg->valve)),
+      (open_valve ? MGOS_BVALVE_STATE_OPENING: MGOS_BVALVE_STATE_CLOSING));
+    // start the timer for waiting for the end of the pulse_duration (ms)
+    cfg->pulse_timer_id = mgos_set_timer(cfg->pulse_duration, 0, mg_bvalve_gpio_motorized_pulse_cb, cfg);
+    return (cfg->pulse_timer_id != MGOS_INVALID_TIMER_ID);
+  }
+  return false;
+}
+
+bool mg_bvalve_gpio_close_motorized(struct mg_bvalve_gpio_cfg *cfg) {
+  return mg_bvalve_gpio_openclose_motorized(cfg, false);
+}
+
+bool mg_bvalve_gpio_open_motorized(struct mg_bvalve_gpio_cfg *cfg) {
+  return mg_bvalve_gpio_openclose_motorized(cfg, true);
 }
 
 bool mg_bvalve_gpio_set_state_motorized(struct mg_bvalve_gpio_cfg *cfg, enum mgos_bvalve_state state) {
