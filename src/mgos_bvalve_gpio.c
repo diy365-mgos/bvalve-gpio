@@ -341,7 +341,7 @@ bool mgos_bvalve_gpio_attach(mgos_bvalve_t valve, ...) {
 
   bool ret = mg_bvalve_gpio_attach(valve, cfg, ap);
   if (ret) {
-    ret = !mgos_bthing_on_set_state(MGOS_BVALVE_THINGCAST(valve), mg_bvalve_gpio_set_state_cb, cfg);
+    ret = mgos_bthing_on_set_state(MGOS_BVALVE_THINGCAST(valve), mg_bvalve_gpio_set_state_cb, cfg);
     if (!ret) {
       LOG(LL_ERROR, ("Error setting the set-state handler of bValve '%s'",
         mgos_bthing_get_uid(MGOS_BVALVE_THINGCAST(valve))));
