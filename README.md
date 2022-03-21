@@ -1,25 +1,25 @@
 # bValves GPIO Library
 ## Overview
-Mongoose-OS library that allows you to easily attach a [bValve](https://github.com/diy365-mgos/bvalve) to a GPIO for measuring signal frequency and calculating the flow volume.
+Mongoose-OS library that allows you to easily attach a [bValve](https://github.com/diy365-mgos/bvalve) to a GPIO.
 ## GET STARTED
 You can start from one of these examples:
-*  [Drive a solenoid valve using MQTT](exaples/solenoid_valve.md)
+*  [Drive a solenoid valve using MQTT](/examples/solenoid_valve.md)
 ## C/C++ APIs Reference
 ### mgos_bvalve_gpio_power
 ```c
 enum mgos_bvalve_gpio_power {
-  MGOS_BVALVE_GPIO_power_NONE = 0,
-  MGOS_BVALVE_GPIO_power_PIN1 = 1,
-  MGOS_BVALVE_GPIO_power_PIN2 = 2,
+  MGOS_BVALVE_GPIO_POWER_NONE = 0,
+  MGOS_BVALVE_GPIO_POWER_PIN1 = 1,
+  MGOS_BVALVE_GPIO_POWER_PIN2 = 2,
 };
 ```
 Power settings for bValves of [type](https://github.com/diy365-mgos/bvalve#mgos_bvalve_type) `MGOS_BVALVE_TYPE_BISTABLE`. Used by `mgos_bvalve_gpio_attach()`.
 
 |Value||
 |--|--|
-|MGOS_BVALVE_GPIO_power_NONE|The valve's power supply is not managed using GPIOs.|
-|MGOS_BVALVE_GPIO_power_PIN1|The valve's power supply is controlled by the `pin1` GPIO.|
-|MGOS_BVALVE_GPIO_power_PIN2|The valve's power supply is controlled by the `pin2` GPIO.|
+|MGOS_BVALVE_GPIO_POWER_NONE|The valve's power supply is not managed using GPIOs.|
+|MGOS_BVALVE_GPIO_POWER_PIN1|The valve's power supply is controlled by the `pin1` GPIO.|
+|MGOS_BVALVE_GPIO_POWER_PIN2|The valve's power supply is controlled by the `pin2` GPIO.|
 ### mgos_bvalve_gpio_attach
 ```c
 bool mgos_bvalve_gpio_attach(mgos_bvalve_t valve, ...);
@@ -74,8 +74,8 @@ The value of the `gpio_power` parameter affects the use of pins according to the
 
 |gpio_power / pin|pin1|pin2|
 |--|--|--|
-|MGOS_BVALVE_GPIO_power_NONE|**Open** the valve.|**Close** the valve.|
-|MGOS_BVALVE_GPIO_power_PIN1|**Power** the valve.|**Open**/**Close** the valve.|
-|MGOS_BVALVE_GPIO_power_PIN2|**Open**/**Close** the valve.|**Power** the valve.|
+|MGOS_BVALVE_GPIO_POWER_NONE|**Open** the valve.|**Close** the valve.|
+|MGOS_BVALVE_GPIO_POWER_PIN1|**Power** the valve.|**Open**/**Close** the valve.|
+|MGOS_BVALVE_GPIO_POWER_PIN2|**Open**/**Close** the valve.|**Power** the valve.|
 ## To Do
 - Implement javascript APIs for [Mongoose OS MJS](https://github.com/mongoose-os-libs/mjs).
