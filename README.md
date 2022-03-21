@@ -1,6 +1,9 @@
 # bValves GPIO Library
 ## Overview
 Mongoose-OS library that allows you to easily attach a [bValve](https://github.com/diy365-mgos/bvalve) to a GPIO for measuring signal frequency and calculating the flow volume.
+## GET STARTED
+You can start from one of these examples:
+*  [Drive a solenoid valve using MQTT](exaples/solenoid_valve.md)
 ## C/C++ APIs Reference
 ### mgos_bvalve_gpio_power
 ```c
