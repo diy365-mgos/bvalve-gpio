@@ -1,13 +1,13 @@
-# Open and close a motorized valve using MQTT (L293D version)
+# Open and close a motorized valve using MQTT (relays version)
 ## Overview
 Mongoose-OS firmaware to drive a motorized valve using MQTT protocol.
 ## Hardware
 Bill of materials:
 * Wemos D1 Mini board
-* L293D Motor Driver board
+* 2 Wemos Relay board
 * Motorized valve
 
-<img src="docs/example-motorized-L293D-v1.png" width="60%"></img>
+<img src="docs/example-motorized(relays)-v1.png" width="60%"></img>
 ## Firmware
 Add these configurations to your `mos.yml` file.
 ```yaml

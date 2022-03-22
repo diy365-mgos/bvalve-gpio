@@ -5,7 +5,8 @@ Mongoose-OS library that allows you to easily attach a [bValve](https://github.c
 You can start from one of these examples:
 * [Open and close a solenoid valve using MQTT](/examples/solenoid_valve.md)
 * [Open and close a bistable valve using MQTT](/examples/bistable_valve.md)
-* [Open and close a motorized valve using MQTT (L293D version)](/examples/motorized_valve_L293D.md)
+* [Open and close a motorized valve using MQTT (L293D version)](/examples/motorized_valve(L293D).md)
+* [Open and close a motorized valve using MQTT (relays version)](/examples/motorized_valve(relays).md)
 ## C/C++ APIs Reference
 ### mgos_bvalve_gpio_power
 ```c
