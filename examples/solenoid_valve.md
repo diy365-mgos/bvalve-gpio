@@ -2,7 +2,7 @@
 ## Overview
 Mongoose-OS firmaware to drive a solenoid valve using MQTT protocol.
 ## Hardware
-<img src="docs/example-solenoid_sketch_v1" width="60%"></img>
+<img src="docs/example-solenoid_sketch_v1.png" width="60%"></img>
 ## Firmware
 Add these configurations to your `mos.yml` file.
 ```yaml
