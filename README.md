@@ -3,7 +3,8 @@
 Mongoose-OS library that allows you to easily attach a [bValve](https://github.com/diy365-mgos/bvalve) to a GPIO.
 ## GET STARTED
 You can start from one of these examples:
-*  [Drive a solenoid valve using MQTT](/examples/solenoid_valve.md)
+* [Open and close a solenoid valve using MQTT](/examples/solenoid_valve.md)
+* [Open and close a bistable valve using MQTT](/examples/bistable_valve.md)
 ## C/C++ APIs Reference
 ### mgos_bvalve_gpio_power
 ```c
