@@ -1,14 +1,13 @@
-# Open and close a bistable valve using MQTT
+# Open and close a motorized valve using MQTT (L293D version)
 ## Overview
-Mongoose-OS firmaware to drive a bistable valve using MQTT protocol.
+Mongoose-OS firmaware to drive a motorized valve using MQTT protocol.
 ## Hardware
 Bill of materials:
 * Wemos D1 Mini board
 * L293D Motor Driver board
-* Bistable valve
-* External power suply (for the valve)
+* Motorized valve
 
-<img src="docs/example-bistable-v1.png" width="60%"></img>
+<img src="docs/example-motorized-L293D-v1.png" width="60%"></img>
 ## Firmware
 Add these configurations to your `mos.yml` file.
 ```yaml

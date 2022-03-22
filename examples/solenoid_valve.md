@@ -8,7 +8,7 @@ Bill of materials:
 * Solenoid valve
 * External power suply (for the valve)
 
-<img src="docs/example-solenoid_sketch_v1.png" width="60%"></img>
+<img src="docs/example-solenoid-v1.png" width="60%"></img>
 ## Firmware
 Add these configurations to your `mos.yml` file.
 ```yaml
