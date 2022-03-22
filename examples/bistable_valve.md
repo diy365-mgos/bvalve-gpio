@@ -1,6 +1,6 @@
-# Open and close a bistable valve using MQTT
+# Control a bistable valve using MQTT
 ## Overview
-Mongoose-OS firmaware to drive a bistable valve using MQTT protocol.
+Mongoose-OS firmaware to control a bistable valve using MQTT protocol.
 ## Hardware
 Bill of materials:
 * Wemos D1 Mini board

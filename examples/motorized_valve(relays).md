@@ -1,6 +1,6 @@
-# Open and close a motorized valve using MQTT (relays version)
+# Control a motorized valve using MQTT (relays version)
 ## Overview
-Mongoose-OS firmaware to drive a motorized valve using MQTT protocol.
+Mongoose-OS firmaware to control a motorized valve using MQTT protocol.
 ## Hardware
 Bill of materials:
 * Wemos D1 Mini board

@@ -1,6 +1,6 @@
-# Open and close a solenoid valve using MQTT
+# Control a solenoid valve using MQTT
 ## Overview
-Mongoose-OS firmaware to drive a solenoid valve using MQTT protocol.
+Mongoose-OS firmaware to control a solenoid valve using MQTT protocol.
 ## Hardware
 Bill of materials:
 * Wemos D1 Mini board
