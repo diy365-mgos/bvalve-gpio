@@ -7,7 +7,7 @@ Bill of materials:
 * L293D Motor Driver board
 * Motorized valve
 
-<img src="docs/example-motorized(L293D)-v1.png" width="60%"></img>
+<img src="docs/example-motorized(L293D)-v2.png" width="60%"></img>
 ## Firmware
 Add these configurations to your `mos.yml` file.
 ```yaml
@@ -29,7 +29,48 @@ libs:
 ```
 Copy and paste this firmware code into your `main.c` file.
 ```c
-// coming soon
+#include "mgos.h"
+#include "mgos_bvalve.h"
+#include "mgos_bvalve_gpio.h"
+
+static void valve_state_changed_cb(int ev, void *ev_data, void *userdata) {
+  struct mgos_bthing_state* data = (struct mgos_bthing_state*)ev_data;
+
+  char* str_state = NULL; 
+  switch (mgos_bvar_get_integer(data->state))
+  {
+    case MGOS_BVALVE_STATE_UNKNOWN:
+      str_state = "UNKNOWN";
+      break;
+    case MGOS_BVALVE_STATE_CLOSED:
+      str_state = "CLOSED";
+      break;
+    case MGOS_BVALVE_STATE_OPEN:
+      str_state = "OPEN";
+      break;
+    case MGOS_BVALVE_STATE_OPENING:
+      str_state = "OPENING";
+      break;
+    case MGOS_BVALVE_STATE_CLOSING:
+      str_state = "CLOSING";
+      break;
+    default:
+      str_state = "ERROR";
+      break;
+  }
+
+  LOG(LL_INFO, ("Valve '%s': %s", mgos_bthing_get_id(data->thing), str_state));
+}
+
+enum mgos_app_init_result mgos_app_init(void) {
+  mgos_event_add_handler(MGOS_EV_BTHING_STATE_CHANGED, valve_state_changed_cb, NULL);
+
+  // create the valve on pins 4 and 5 (D2 and D1 on Wemos board)
+  mgos_bvalve_t v01 = mgos_bvalve_create("v01", (MGOS_BVALVE_TYPE_MOTORIZED | MGOS_BVALVE_TYPE_NO), NULL);
+  mgos_bvalve_gpio_attach(v01, 4, true, 5, true, 7, MGOS_BVALVE_GPIO_POWER_NONE);
+
+  return MGOS_APP_INIT_SUCCESS;
+}
 ```
 ## MQTT
 You can use MQTT */state/updated* and */state/set* topics for getting and setting the valve's state. In addition you can also use more [shadow topics](https://github.com/diy365-mgos/bthing-mqtt#shadow-mode-mqtt-topics).
