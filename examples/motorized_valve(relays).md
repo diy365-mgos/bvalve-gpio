@@ -4,7 +4,7 @@ Mongoose-OS firmaware to control a motorized valve using MQTT protocol.
 ## Hardware
 Bill of materials:
 * Wemos D1 Mini board
-* 2 Wemos Relay board
+* 2 Wemos Relay boards
 * Motorized valve
 
 <img src="docs/example-motorized(relays)-v1.png" width="60%"></img>
