@@ -38,20 +38,26 @@ Subscribe to */state/updated* topic to receive valve's state updates.
 ```
 $bthings/{device_id}/state/updated
 ```
-[Shadow state document](https://github.com/diy365-mgos/bthing-mqtt#shadow-state-document-example) published on the */state/updated* topic. The `state_code` is one of the valve's [states](https://github.com/diy365-mgos/bvalve#mgos_bvalve_state).
+[Shadow state document](https://github.com/diy365-mgos/bthing-mqtt#shadow-state-document) published on the */state/updated* topic. The `state_code` is one of the valve's [states](https://github.com/diy365-mgos/bvalve#mgos_bvalve_state).
 ```
-{ "v01": <state_code> }
+{
+  "v01": <state_code>
+}
 ```
 ### /state/set
-Publish a [Shadow state document](https://github.com/diy365-mgos/bthing-mqtt#shadow-state-document-example) to /state/set topic to set the valve's state.
+Publish a [Shadow state document](https://github.com/diy365-mgos/bthing-mqtt#shadow-state-document) to /state/set topic to set the valve's state.
 ```
 $bthings/{device_id}/state/set
 ```
 Open the valve.
-```
-{ "v01": 1 }
+```json
+{
+  "v01": 1
+}
 ```
 Close the valve.
-```
-{ "v01": 0 }
+```json
+{
+  "v01": 0
+}
 ```
