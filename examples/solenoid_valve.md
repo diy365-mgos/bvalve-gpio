@@ -73,6 +73,10 @@ enum mgos_app_init_result mgos_app_init(void) {
   return MGOS_APP_INIT_SUCCESS;
 }
 ```
+Connect the board to the WiFi network using the `mos.exe` tool (see the [Configure WiFi](https://mongoose-os.com/docs/mongoose-os/quickstart/setup.md#7-configure-wifi) official Mongoose OS guide).
+```
+mos wifi <network_name> <password>
+```
 ## MQTT
 You can use MQTT */state/updated* and */state/set* topics for getting and setting the valve's state. In addition you can also use more [shadow topics](https://github.com/diy365-mgos/bthing-mqtt#shadow-mode-mqtt-topics).
 ### /state/updated

@@ -66,14 +66,19 @@ static void valve_state_changed_cb(int ev, void *ev_data, void *userdata) {
 enum mgos_app_init_result mgos_app_init(void) {
   mgos_event_add_handler(MGOS_EV_BTHING_STATE_CHANGED, valve_state_changed_cb, NULL);
 
-  // create the valve on pins 4 and 5 (D2 and D1 on Wemos board)
+  // create the bistable valve
   mgos_bvalve_t v01 = mgos_bvalve_create("v01", MGOS_BVALVE_TYPE_BISTABLE, NULL);
+  // attach the valve to pin 4(D2) and to pin 5(D1)
   mgos_bvalve_gpio_attach(v01, 4, true, 5, true, 500);
   // ensure the valve is closed (initial state)  
   mgos_bvalve_set_state(v01, MGOS_BVALVE_STATE_CLOSED);
 
   return MGOS_APP_INIT_SUCCESS;
 }
+```
+Connect the board to the WiFi network using the `mos.exe` tool (see the [Configure WiFi](https://mongoose-os.com/docs/mongoose-os/quickstart/setup.md#7-configure-wifi) official Mongoose OS guide).
+```
+mos wifi <network_name> <password>
 ```
 ## MQTT
 You can use MQTT */state/updated* and */state/set* topics for getting and setting the valve's state. In addition you can also use more [shadow topics](https://github.com/diy365-mgos/bthing-mqtt#shadow-mode-mqtt-topics).
