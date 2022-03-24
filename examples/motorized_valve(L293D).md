@@ -7,7 +7,7 @@ Bill of materials:
 * L293D Motor Driver board
 * Motorized valve
 
-<img src="docs/example-motorized(L293D)-v2.png" width="60%"></img>
+<img src="docs/example-motorized(L293D)-v3.png" width="60%"></img>
 ## Firmware
 Add these configurations to your `mos.yml` file.
 ```yaml
