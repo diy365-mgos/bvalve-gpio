@@ -8,7 +8,7 @@ Bill of materials:
 * Bistable valve
 * External power suply (for the valve)
 
-<img src="docs/example-bistable-v2.png" width="60%"></img>
+<img src="docs/example-bistable-v3.png" width="60%"></img>
 ## Firmware
 Add these configurations to your `mos.yml` file.
 ```yaml
