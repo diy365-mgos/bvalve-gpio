@@ -22,7 +22,6 @@ libs:
   - origin: https://github.com/mongoose-os-libs/rpc-common
   - origin: https://github.com/mongoose-os-libs/rpc-uart
   - origin: https://github.com/mongoose-os-libs/rpc-service-config
-  - origin: https://github.com/diy365-mgos/bvalve
   - origin: https://github.com/diy365-mgos/bvalve-gpio
   - origin: https://github.com/diy365-mgos/bthing-shadow
   - origin: https://github.com/diy365-mgos/bthing-mqtt
