@@ -349,13 +349,12 @@ bool mgos_bvalve_gpio_attach(mgos_bvalve_t valve, ...) {
   }
 
   if (ret) {
-    if (cfg->pin1 != -1) {
+    if (cfg->pin1 != -1 && cfg->pin2 != -1) {
+      LOG(LL_INFO, ("bValve '%s' successfully attached to pins %d and %d",
+        mgos_bthing_get_uid(MGOS_BVALVE_THINGCAST(valve)), cfg->pin1, cfg->pin2));
+    } else if (cfg->pin1 != -1 || cfg->pin2 != -1) {
       LOG(LL_INFO, ("bValve '%s' successfully attached to pin %d",
-        mgos_bthing_get_uid(MGOS_BVALVE_THINGCAST(valve)), cfg->pin1));
-    }
-    if (cfg->pin2 != -1) {
-      LOG(LL_INFO, ("bValve '%s' successfully attached to pin %d",
-        mgos_bthing_get_uid(MGOS_BVALVE_THINGCAST(valve)), cfg->pin2));
+        mgos_bthing_get_uid(MGOS_BVALVE_THINGCAST(valve)), (cfg->pin1 != -1 ? cfg->pin1 : cfg->pin2)));
     }
   } else {
     free(cfg);
