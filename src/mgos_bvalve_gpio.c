@@ -85,13 +85,12 @@ bool mg_bvalve_gpio_set_pin1pin2(struct mg_bvalve_gpio_cfg *cfg, bool reverse) {
 }
 
 static void mg_bvalve_gpio_set_final_state(mgos_bvalve_t valve) {
-  mgos_bvar_t state_4upd = mg_bthing_get_state_4update(MGOS_BVALVE_THINGCAST(valve));
-  enum mgos_bvalve_state state = (enum mgos_bvalve_state)mgos_bvar_get_integer(state_4upd);
-
-  mgos_bvar_set_integer(state_4upd,
-    (state == MGOS_BVALVE_STATE_CLOSING ? MGOS_BVALVE_STATE_CLOSED : MGOS_BVALVE_STATE_OPEN));
-
-  mgos_bthing_update_state(MGOS_BVALVE_THINGCAST(valve));
+  struct mgos_bthing_updatable_state state;
+  if (mgos_bthing_start_update_state(MGOS_BVALVE_THINGCAST(valve), &state)) {
+    mgos_bvar_set_integer(state.value,
+      (state == MGOS_BVALVE_STATE_CLOSING ? MGOS_BVALVE_STATE_CLOSED : MGOS_BVALVE_STATE_OPEN));
+    mgos_bthing_end_update_state(state);
+  }
 }
 
 static void mg_bvalve_gpio_bistable_pulse_cb(void *arg) {
