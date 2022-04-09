@@ -88,7 +88,7 @@ static void mg_bvalve_gpio_set_final_state(mgos_bvalve_t valve) {
   struct mgos_bthing_updatable_state state;
   if (mgos_bthing_start_update_state(MGOS_BVALVE_THINGCAST(valve), &state)) {
     mgos_bvar_set_integer(state.value,
-      (state == MGOS_BVALVE_STATE_CLOSING ? MGOS_BVALVE_STATE_CLOSED : MGOS_BVALVE_STATE_OPEN));
+      (mgos_bvar_get_integer(state.value) == MGOS_BVALVE_STATE_CLOSING ? MGOS_BVALVE_STATE_CLOSED : MGOS_BVALVE_STATE_OPEN));
     mgos_bthing_end_update_state(state);
   }
 }
