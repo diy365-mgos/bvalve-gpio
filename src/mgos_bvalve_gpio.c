@@ -93,7 +93,7 @@ static void mg_bvalve_gpio_set_final_state(mgos_bvalve_t valve) {
   }
 }
 
-static void mg_bvalve_gpio_bistable_pulse_cb(void *arg) {
+static void mg_bvalve_gpio_motordriver_pulse_cb(void *arg) {
   struct mg_bvalve_gpio_cfg *cfg = (struct mg_bvalve_gpio_cfg *)arg;
   if (mg_bvalve_gpio_reset_pin1pin2(cfg)) {
     mg_bvalve_gpio_set_final_state(cfg->valve);
@@ -102,27 +102,56 @@ static void mg_bvalve_gpio_bistable_pulse_cb(void *arg) {
   cfg->pulse_timer_id = MGOS_INVALID_TIMER_ID;
 }
 
-bool mg_bvalve_gpio_openclose_bistable(struct mg_bvalve_gpio_cfg *cfg, bool open_valve) {
-  // I must CLOSE the bistable valve...
-  if (cfg->pulse_timer_id != MGOS_INVALID_TIMER_ID) mgos_clear_timer(cfg->pulse_timer_id);
-  if (mg_bvalve_gpio_set_pin1pin2(cfg, !open_valve)) {
-    mgos_bvar_set_integer(mg_bthing_get_state_4update(MGOS_BVALVE_THINGCAST(cfg->valve)),
-      (open_valve ? MGOS_BVALVE_STATE_OPENING : MGOS_BVALVE_STATE_CLOSING));
-    // start the timer for waiting for the end of the pulse_duration (ms)
-    cfg->pulse_timer_id = mgos_set_timer(cfg->pulse_duration, 0, mg_bvalve_gpio_bistable_pulse_cb, cfg);
-    return (cfg->pulse_timer_id != MGOS_INVALID_TIMER_ID);
+bool mg_bvalve_gpio_openclose_using_motordriver(struct mg_bvalve_gpio_cfg *cfg, bool open_valve) {
+  // I must CLOSE the valve...
+  enum mgos_bvalve_type t = mgos_bvalve_get_type(cfg->valve);
+  if ((t & MGOS_BVALVE_TYPE_MOTORIZED) == MGOS_BVALVE_TYPE_MOTORIZED ||
+      (t & MGOS_BVALVE_TYPE_BISTABLE) == MGOS_BVALVE_TYPE_BISTABLE) {    
+    // clear the timer
+    if (cfg->pulse_timer_id != MGOS_INVALID_TIMER_ID) {
+      mgos_clear_timer(cfg->pulse_timer_id);
+      cfg->pulse_timer_id = MGOS_INVALID_TIMER_ID;
+    }
+    // set motor-driver pins
+    if (mg_bvalve_gpio_set_pin1pin2(cfg, !open_valve)) {
+      mgos_bvar_set_integer(mg_bthing_get_state_4update(MGOS_BVALVE_THINGCAST(cfg->valve)),
+        (open_valve ? MGOS_BVALVE_STATE_OPENING : MGOS_BVALVE_STATE_CLOSING));
+
+      if ((t & MGOS_BVALVE_TYPE_MOTORIZED) == MGOS_BVALVE_TYPE_MOTORIZED) { 
+        // start the timer for waiting for the end of the pulse_duration (ms)
+        cfg->pulse_timer_id = mgos_set_timer(cfg->pulse_duration, 0, mg_bvalve_gpio_motordriver_pulse_cb, cfg);
+        return (cfg->pulse_timer_id != MGOS_INVALID_TIMER_ID);
+      } else {
+        mgos_msleep(cfg->pulse_duration); // wait (ms)
+        // reset motor-driver pins
+        if (mg_bvalve_gpio_reset_pin1pin2(cfg)) {
+          mg_bvalve_gpio_set_final_state(cfg->valve);
+          return true;
+        }
+      }
+    }
   }
   return false;
 }
 
+bool mg_bvalve_gpio_close_using_motordriver(struct mg_bvalve_gpio_cfg *cfg) {
+  // I must CLOSE the bistable/motorized valve...
+  return mg_bvalve_gpio_openclose_using_motordriver(cfg, false);
+}
+
+bool mg_bvalve_gpio_open_using_motordriver(struct mg_bvalve_gpio_cfg *cfg) {
+  // I must OPEN the bistable/motorized valve ...
+  return mg_bvalve_gpio_openclose_using_motordriver(cfg, true);
+}
+
 bool mg_bvalve_gpio_close_bistable(struct mg_bvalve_gpio_cfg *cfg) {
   // I must CLOSE the bistable valve...
-  return mg_bvalve_gpio_openclose_bistable(cfg, false);
+  return mg_bvalve_gpio_close_using_motordriver(cfg);
 }
 
 bool mg_bvalve_gpio_open_bistable(struct mg_bvalve_gpio_cfg *cfg) {
   // I must OPEN the bistable valve...
-  return mg_bvalve_gpio_openclose_bistable(cfg, true);
+  return mg_bvalve_gpio_open_using_motordriver(cfg);
 }
 
 bool mg_bvalve_gpio_set_state_bistable(struct mg_bvalve_gpio_cfg *cfg, enum mgos_bvalve_state state) {
@@ -192,9 +221,8 @@ static void mg_bvalve_gpio_motorized_pulse_cb(void *arg) {
 
 bool mg_bvalve_gpio_openclose_motorized(struct mg_bvalve_gpio_cfg *cfg, bool open_valve) {
   if (cfg->gpio_power == MGOS_BVALVE_GPIO_POWER_NONE) {
-    // the moorized valve works like a bistable one, but with
-    // a longer pulse_duration (usually 5/6 seconds).
-    return (open_valve ? mg_bvalve_gpio_open_bistable(cfg) : mg_bvalve_gpio_close_bistable(cfg));
+    // the motorized valve is driven by a motor driver.
+    return (open_valve ? mg_bvalve_gpio_open_using_motordriver(cfg) : mg_bvalve_gpio_close_using_motordriver(cfg));
   }
 
   // cancel the pending timer (if running)
